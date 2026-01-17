@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Usuario;
 use App\Models\Hotelero;
 use App\Models\Restaurantero;
+use Illuminate\Http\Request;
 
 class AdminController extends Controller
 {

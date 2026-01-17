@@ -41,9 +41,9 @@ class AuthController extends Controller
 
         return match ($usuario->rol) {
             'admin' => redirect('admin.dashboard'),
-            'hotelero' => redirect('/hotelero'),
-            'restaurantero' => redirect('/restaurantero'),
-            default => redirect('/')
+            'hotelero' => redirect('hotelero.dashboard'),
+            'restaurantero' => redirect('restaurantero.dashboard'),
+            default => redirect('inicio')
         };
     }
 
@@ -187,6 +187,6 @@ class AuthController extends Controller
     public function logout()
     {
         session()->flush();
-        return redirect('/');
+        return redirect('login');
     }
 }
