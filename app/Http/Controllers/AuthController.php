@@ -11,49 +11,59 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    /* ===== LOGIN ===== */
+    /* ===== MOSTRAR FORM LOGIN ===== */
     public function loginForm()
     {
         return view('auth.login');
     }
 
+    /* ===== PROCESAR LOGIN ===== */
     public function login(Request $request)
     {
         $request->validate([
             'correo' => 'required|email',
-            'password' => 'required'
+            'password' => 'required',
         ]);
 
+        // Buscar usuario por correo
         $usuario = Usuario::where('correo', $request->correo)->first();
 
-        if (!$usuario || !Hash::check($request->password, $usuario->password)) {
+        // Verificar credenciales
+        if (! $usuario || ! Hash::check($request->password, $usuario->password)) {
             return back()->withErrors(['Credenciales incorrectas']);
         }
 
-        if (!$usuario->activo) {
-            return back()->withErrors(['Usuario inactivo']);
+        // Verificar si está activo
+        if (! $usuario->activo) {
+            return back()->withErrors(['Tu cuenta está inactiva']);
         }
 
+        // Guardar sesión
         session([
             'usuario_id' => $usuario->id_usuario,
-            'rol' => $usuario->rol
+            'rol' => $usuario->rol,
         ]);
 
-        return match ($usuario->rol) {
-            'admin' => redirect('admin.dashboard'),
-            'hotelero' => redirect('hotelero.dashboard'),
-            'restaurantero' => redirect('restaurantero.dashboard'),
-            default => redirect('inicio')
-        };
+        // Redirección por rol
+        if ($usuario->rol === 'admin') {
+            return redirect()->route('admin.dashboard');
+        }
+
+        if ($usuario->rol === 'turista') {
+            return redirect()->route('inicio');
+        }
+
+        // Otros roles
+        return redirect()->route('inicio');
     }
 
-    /* ===== REGISTRO GENERAL (CARDS) ===== */
+    /* ===== REGISTRO GENERAL ===== */
     public function registroForm()
     {
         return view('auth.registro');
     }
 
-    /* ===== FORMULARIOS DE REGISTRO POR ROL ===== */
+    /* ===== FORMULARIOS POR ROL ===== */
     public function registroTuristaForm()
     {
         return view('auth.registro-turista');
@@ -98,7 +108,7 @@ class AuthController extends Controller
             ->with('success', 'Cuenta creada correctamente');
     }
 
-    /* ===== REGISTRO HOTELERO (PENDIENTE) ===== */
+    /* ===== REGISTRO HOTELERO ===== */
     public function registroHotelero(Request $request)
     {
         $request->validate([
@@ -128,7 +138,7 @@ class AuthController extends Controller
             ->with('success', 'Solicitud enviada. Espera aprobación del administrador.');
     }
 
-    /* ===== REGISTRO RESTAURANTERO (PENDIENTE) ===== */
+    /* ===== REGISTRO RESTAURANTERO ===== */
     public function registroRestaurantero(Request $request)
     {
         $request->validate([
@@ -173,20 +183,21 @@ class AuthController extends Controller
 
         $usuario = Usuario::where('correo', $request->correo)->first();
 
-        if (!$usuario) {
+        if (! $usuario) {
             return back()->withErrors(['Correo no encontrado']);
         }
 
         $usuario->password = Hash::make($request->password);
         $usuario->save();
 
-        return redirect()->route('login')->with('success', 'Contraseña actualizada');
+        return redirect()->route('login')
+            ->with('success', 'Contraseña actualizada');
     }
 
     /* ===== LOGOUT ===== */
     public function logout()
     {
         session()->flush();
-        return redirect('login');
+        return redirect()->route('login');
     }
 }

@@ -9,10 +9,6 @@ use App\Http\Controllers\SitioController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DestinoController;
 use App\Http\Controllers\ServicioController;
-use App\Models\Usuario;
-use App\Models\Turista;
-use App\Models\Hotelero;
-use App\Models\Restaurantero;
 
 /*
 |--------------------------------------------------------------------------
@@ -58,7 +54,7 @@ Route::put('/sitios/{id}', [SitioController::class, 'update'])->name('sitios.upd
 
 /*
 |--------------------------------------------------------------------------
-| SERVICIOS (SIN BD AÚN)
+| SERVICIOS (VISTAS ESTÁTICAS)
 |--------------------------------------------------------------------------
 */
 Route::prefix('servicios')->group(function () {
@@ -82,8 +78,11 @@ Route::view('/contacto', 'contacto')->name('contacto');
 | LOGIN & REGISTRO
 |--------------------------------------------------------------------------
 */
-// Login
+
+// Mostrar formulario login
 Route::get('/login', [AuthController::class, 'loginForm'])->name('login');
+
+// Procesar login
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 
 // Logout
@@ -95,7 +94,6 @@ Route::post('/recuperar-password', [AuthController::class, 'recuperar'])->name('
 
 // Registro general
 Route::get('/registro', [AuthController::class, 'registroForm'])->name('registro');
-Route::post('/registro', [AuthController::class, 'registro'])->name('registro.post');
 
 // Registro por rol
 // Turista
@@ -112,12 +110,12 @@ Route::post('/registro/restaurantero', [AuthController::class, 'registroRestaura
 
 /*
 |--------------------------------------------------------------------------
-| ADMIN PANEL (CON MIDDLEWARE)
+| ADMIN PANEL (USANDO SESIÓN MANUAL + CHECKROLE)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'checkrole:admin'])->prefix('admin')->group(function () {
-    // Dashboard
+Route::middleware(['checkrole:admin'])->prefix('admin')->group(function () {
 
+    // Dashboard principal
     Route::get('/', [AdminController::class, 'dashboard'])->name('admin.dashboard');
 
     // Bandeja de solicitudes
@@ -132,9 +130,3 @@ Route::middleware(['auth', 'checkrole:admin'])->prefix('admin')->group(function 
     // CRUD Servicios
     Route::resource('/servicios', ServicioController::class);
 });
-
-Route::get('/admin', function () {
-    return view('admin.index');
-})->name('admin.index');
-
-
